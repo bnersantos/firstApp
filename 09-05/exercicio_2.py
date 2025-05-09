@@ -17,7 +17,7 @@ def main(page: ft.Page):
     # Funções
 
     def salvar_dados(e):
-        if input_titulo == '' or input_autor == '' or input_descricao == '':
+        if input_titulo.value == "" or input_autor.value == "" or input_descricao.value == "":
             page.overlay.append(msg_error)
             msg_error.open = True
             page.update()
@@ -43,19 +43,29 @@ def main(page: ft.Page):
         for l in livros:
             lv_livro.controls.append(
                 ft.ListTile(
-                    leading=ft.Icon(ft.Icons.PERSON),
+                    leading=ft.Icon(ft.Icons.BOOK),
                     title=ft.Text(l.titulo),
                     subtitle=ft.Text(l.autor),
                     trailing=ft.PopupMenuButton(
                         icon=ft.Icons.MORE_VERT,
                         items=[
-                            ft.PopupMenuItem(text=l.descricao),
+                            ft.PopupMenuItem(
+                                text="Detalhes",
+                                on_click=lambda _: carregar_dados(e)  ),
                         ]
                     )
                 )
             )
         page.update()
-
+    def carregar_livro(e):
+        livro = select(Livros).where(Livros.titulo == e.titulo)
+        ft.ListTile(
+            leading=ft.Icon(ft.Icons.BOOK),
+            title=ft.Text(e.titulo),
+            subtitle=ft.Text(e.autor),
+            trailing=ft.Text(e.descricao),
+        )
+        page.update()
 
     def gerencia_rotas(e):
         page.views.clear()
@@ -90,6 +100,16 @@ def main(page: ft.Page):
                 )
             )
         page.update()
+        if page.route == "/carregar":
+            carregar_livro(e)
+            page.views.append(
+                View(
+                    "/carregar",
+                    [
+                    AppBar(title=Text("Carregar"), bgcolor=Colors.PRIMARY_CONTAINER),
+                        ]
+                )
+            )
 
     def voltar(e):
         page.views.pop()
