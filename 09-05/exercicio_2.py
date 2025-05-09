@@ -1,15 +1,10 @@
-from msilib.schema import ListView
 import flet as ft
+from flet import *
 from flet import AppBar, Text, View
-from flet.auth import user
 from flet.core.colors import Colors
+from models import Livros, db_session
+from sqlalchemy import select
 
-
-class User():
-    def __init__(self, nome, profissao, salario):
-        self.nome = nome
-        self.profissao = profissao
-        self.salario = salario
 
 
 def main(page: ft.Page):
@@ -20,45 +15,47 @@ def main(page: ft.Page):
     page.window.height = 667
 
     # Funções
-    lista = []
 
     def salvar_dados(e):
-        if input_nome == '' or input_profissao == '' or input_salario == '':
+        if input_titulo == '' or input_autor == '' or input_descricao == '':
             page.overlay.append(msg_error)
             msg_error.open = True
             page.update()
             return
         else:
-            obj_user = User(
-                nome=input_nome.value,
-                profissao=input_profissao.value,
-                salario=input_salario.value,
+            obj_livro = Livros(
+                titulo=input_titulo.value,
+                autor=input_autor.value,
+                descricao=input_descricao.value,
             )
-            lista.append(obj_user)
-            input_nome.value = ''
-            input_profissao.value = ''
-            input_salario.value = ''
+            obj_livro.save()
+            input_titulo.value = ''
+            input_autor.value = ''
+            input_descricao.value = ''
             page.overlay.append(msg_sucess)
-            msg_sucess = True
+            msg_sucess.open = True
             page.update()
 
     def carregar_dados(e):
-        lv_funcionario.controls.clear()
-        for user in lista:
-            lv_funcionario.controls.append(
+        lv_livro.controls.clear()
+        livro = select(Livros)
+        livros = db_session.execute(livro).scalars().all()
+        for l in livros:
+            lv_livro.controls.append(
                 ft.ListTile(
                     leading=ft.Icon(ft.Icons.PERSON),
-                    title=ft.Text(user.nome),
-                    subtitle=ft.Text(user.profissao),
+                    title=ft.Text(l.titulo),
+                    subtitle=ft.Text(l.autor),
                     trailing=ft.PopupMenuButton(
                         icon=ft.Icons.MORE_VERT,
                         items=[
-                            ft.PopupMenuItem(text="R${user.salario}"),
+                            ft.PopupMenuItem(text=l.descricao),
                         ]
                     )
                 )
             )
         page.update()
+
 
     def gerencia_rotas(e):
         page.views.clear()
@@ -67,9 +64,9 @@ def main(page: ft.Page):
                 "/",
                 [
                     AppBar(title=Text("Home"), bgcolor=Colors.PRIMARY_CONTAINER),
-                    input_nome,
-                    input_profissao,
-                    input_salario,
+                    input_titulo,
+                    input_autor,
+                    input_descricao,
                     ft.ElevatedButton(
                         text="Salvar",
                         on_click=lambda _: salvar_dados(e),
@@ -88,7 +85,7 @@ def main(page: ft.Page):
                     "/segunda",
                     [
                         AppBar(title=Text("Segunda tela"), bgcolor=Colors.SECONDARY_CONTAINER),
-                        lv_funcionario,
+                        lv_livro,
                     ],
                 )
             )
@@ -101,17 +98,18 @@ def main(page: ft.Page):
 
     # Componentes
     msg_sucess = ft.SnackBar(
-        content=Text(),
+        content=Text("Livro cadastrado!"),
         bgcolor=Colors.GREEN,
     )
+
     msg_error = ft.SnackBar(
-        content=Text(),
+        content=Text("Não deixec campo vazio!"),
         bgcolor=Colors.RED,
     )
-    input_nome = ft.TextField(label="Nome: ")
-    input_profissao = ft.TextField(label="Profissao: ")
-    input_salario = ft.TextField(label="Salario: ")
-    lv_funcionario = ft.ListView(
+    input_titulo = ft.TextField(label="Título: ")
+    input_autor = ft.TextField(label="Autor: ")
+    input_descricao = ft.TextField(label="Descrição: ")
+    lv_livro = ft.ListView(
         height=500,
         spacing=1,
         divider_thickness=1,
