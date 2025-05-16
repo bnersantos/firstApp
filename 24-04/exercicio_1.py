@@ -1,15 +1,11 @@
 from msilib.schema import ListView
 import flet as ft
-from flet import AppBar, Text, View
+from flet import AppBar, Text, View, ListView
 from flet.auth import user
 from flet.core.colors import Colors
+from models import Funcionario, db_session
+from sqlalchemy import select
 
-
-class User():
-    def __init__(self, nome, profissao, salario):
-        self.nome = nome
-        self.profissao = profissao
-        self.salario = salario
 
 
 def main(page: ft.Page):
@@ -20,7 +16,6 @@ def main(page: ft.Page):
     page.window.height = 667
 
     # Funções
-    lista = []
 
     def salvar_dados(e):
         if input_nome == '' or input_profissao == '' or input_salario == '':
@@ -29,31 +24,33 @@ def main(page: ft.Page):
             page.update()
             return
         else:
-            obj_user = User(
+            obj_user = Funcionario(
                 nome=input_nome.value,
                 profissao=input_profissao.value,
                 salario=input_salario.value,
             )
-            lista.append(obj_user)
+            obj_user.save()
             input_nome.value = ''
             input_profissao.value = ''
             input_salario.value = ''
             page.overlay.append(msg_sucess)
-            msg_sucess = True
+            msg_sucess.open = True
             page.update()
 
     def carregar_dados(e):
         lv_funcionario.controls.clear()
-        for user in lista:
+        funcionario = select(Funcionario)
+        funcionarios = db_session.execute(funcionario).scalars().all()
+        for f in funcionarios:
             lv_funcionario.controls.append(
                 ft.ListTile(
                     leading=ft.Icon(ft.Icons.PERSON),
-                    title=ft.Text(user.nome),
-                    subtitle=ft.Text(user.profissao),
+                    title=ft.Text(f.nome),
+                    subtitle=ft.Text(f.profissao),
                     trailing=ft.PopupMenuButton(
                         icon=ft.Icons.MORE_VERT,
                         items=[
-                            ft.PopupMenuItem(text="R${user.salario}"),
+                            ft.PopupMenuItem(text=f"R${f.salario}"),
                         ]
                     )
                 )
@@ -67,6 +64,7 @@ def main(page: ft.Page):
                 "/",
                 [
                     AppBar(title=Text("Home"), bgcolor=Colors.PRIMARY_CONTAINER),
+                    ft.Text('Cadastro de funcionários: \n'),
                     input_nome,
                     input_profissao,
                     input_salario,
