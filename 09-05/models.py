@@ -12,9 +12,10 @@ Base.query = db_session.query_property()
 class Livros(Base):
     __tablename__ = 'livros'
     id = Column(Integer, primary_key=True)
-    titulo = Column(String(40), nullable=False, index=True)
+    titulo = Column(String(40), nullable=False, index=True, unique=True)
     autor = Column(String(40), nullable=False, index=True)
     descricao = Column(String(40), nullable=False, index=True)
+    categoria = Column(String(40), nullable=False, index=True)
 
 
     def __repr__(self):
@@ -33,7 +34,8 @@ class Livros(Base):
             'id': self.id,
             'Titulo': self.titulo,
             'Autor': self.autor,
-            'Descrição': self.descricao
+            'Categoria': self.categoria,
+            'Descrição': self.descricao,
         }
 
         return dados_livros
